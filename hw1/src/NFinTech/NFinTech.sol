@@ -76,29 +76,83 @@ contract NFinTech is IERC721 {
 
     function setApprovalForAll(address operator, bool approved) external {
         // TODO: please add your implementaiton here
+        require(operator != msg.sender, "ERC721: approve to caller");
+        require(operator != address(0), "Address cannot be zero"); 
+        _operatorApproval[msg.sender][operator] = approved;
+        emit ApprovalForAll(msg.sender, operator, approved);
     }
 
     function isApprovedForAll(address owner, address operator) public view returns (bool) {
         // TODO: please add your implementaiton here
+        return _operatorApproval[owner][operator];
     }
 
     function approve(address to, uint256 tokenId) external {
         // TODO: please add your implementaiton here
+        address owner = ownerOf(tokenId);
+        require(to != owner, "ERC721: approval to current owner");
+        _tokenApproval[tokenId] = to;
+        emit Approval(ownerOf(tokenId), to, tokenId);
     }
 
     function getApproved(uint256 tokenId) public view returns (address operator) {
         // TODO: please add your implementaiton here
+        return _tokenApproval[tokenId];
     }
 
     function transferFrom(address from, address to, uint256 tokenId) public {
         // TODO: please add your implementaiton here
+        require(_owner[tokenId] == from, "The token does not belong to this user");
+        require(to != address(0), "Address cannot be zero");
+        _owner[tokenId] = to;
+        _balances[to] += 1;
+        _balances[from] -= 1;
+        emit Transfer(from, to, tokenId);
     }
 
     function safeTransferFrom(address from, address to, uint256 tokenId, bytes calldata data) public {
         // TODO: please add your implementaiton here
+        transferFrom(from, to, tokenId);
+        if (to.code.length > 0) {
+            try IERC721TokenReceiver(to).onERC721Received(to, from, tokenId, data) returns (bytes4 retval) {
+                if (retval != IERC721TokenReceiver.onERC721Received.selector) {
+                    // Token rejected
+                    revert ();
+                }
+            } catch (bytes memory reason) {
+                if (reason.length == 0) {
+                    // non-IERC721Receiver implementer
+                    revert ();
+                } else {
+                    /// @solidity memory-safe-assembly
+                    assembly {
+                        revert(add(32, reason), mload(reason))
+                    }
+                }
+            }
+        }
     }
 
     function safeTransferFrom(address from, address to, uint256 tokenId) public {
         // TODO: please add your implementaiton here
+        transferFrom(from, to, tokenId);
+        if (to.code.length > 0) {
+            try IERC721TokenReceiver(to).onERC721Received(to, from, tokenId, "") returns (bytes4 retval) {
+                if (retval != IERC721TokenReceiver.onERC721Received.selector) {
+                    // Token rejected
+                    revert ();
+                }
+            } catch (bytes memory reason) {
+                if (reason.length == 0) {
+                    // non-IERC721Receiver implementer
+                    revert ();
+                } else {
+                    /// @solidity memory-safe-assembly
+                    assembly {
+                        revert(add(32, reason), mload(reason))
+                    }
+                }
+            }
+        }
     }
 }
