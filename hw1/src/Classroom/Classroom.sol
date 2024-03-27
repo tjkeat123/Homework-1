@@ -4,9 +4,15 @@ pragma solidity ^0.8.0;
 /* Problem 1 Interface & Contract */
 contract StudentV1 {
     // Note: You can declare some state variable
-
+    mapping(address => bool) public hasRegistered; 
     function register() external returns (uint256) {
         // TODO: please add your implementaiton here
+        if (hasRegistered[msg.sender]) { 
+            return 123;
+        } else {
+            hasRegistered[msg.sender] = true;
+            return 1000;
+        }
     }
 }
 
@@ -18,6 +24,7 @@ interface IClassroomV2 {
 contract StudentV2 {
     function register() external view returns (uint256) {
         // TODO: please add your implementaiton here
+        
     }
 }
 
@@ -25,5 +32,10 @@ contract StudentV2 {
 contract StudentV3 {
     function register() external view returns (uint256) {
         // TODO: please add your implementaiton here
+        if(gasleft() > 7000) {
+            return 1000;
+        } else {
+            return 123;
+        }
     }
 }
